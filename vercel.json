@@ -1,12 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/[...path].js"
-    },
-    {
-      "handle": "filesystem"
+  "functions": {
+    "api/[...path].js": {
+      "includeFiles": [
+        "*.html",
+        "*.js",
+        "*.css",
+        "*.jpeg",
+        "*.png",
+        "images/**"
+      ]
     }
-  ]
+  }
 }
