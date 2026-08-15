@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Athiva Designs — Saree Collection</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1 class="brand">
+          <img class="brand-logo" src="logo.jpeg" alt="Athiva Designs logo">
+          <span>Athiva Designs</span>
+        </h1>
+        <nav class="main-nav">
+          <div class="nav-left">
+            <div class="dropdown">
+              <button id="products-dropdown">Products ▾</button>
+              <div id="products-menu" class="dropdown-menu">
+                <a href="#" data-cat="All">All Sarees</a>
+                <a href="#" data-cat="Banarasi">Banarasi</a>
+                <a href="#" data-cat="Kanjivaram">Kanjivaram</a>
+                <a href="#" data-cat="Chiffon">Chiffon</a>
+                <a href="#" data-cat="Tussar">Tussar</a>
+                <a href="#" data-cat="Kanchipattu">Kanchipattu</a>
+                <a href="#" data-cat="Georgette">Georgette</a>
+                <a href="#" data-cat="Katan">Katan</a>
+                <a href="#" data-cat="Raw Mango Pattu">Raw Mango Pattu</a>
+                <a href="#" data-cat="Paithani">Paithani</a>
+              </div>
+            </div>
+            <div class="search-box">
+              <input id="search-input" type="text" placeholder="Search sarees..." aria-label="Search">
+              <button id="search-btn" aria-label="Search">🔍</button>
+            </div>
+          </div>
+          <div class="nav-right">
+            <a class="button-link button-link-soft" href="auth.html" aria-label="Customer login">👤 Customer Login</a>
+            <a class="button-link button-link-soft" href="admin-login.html" aria-label="Admin login">🔒 Admin Login</a>
+            <a class="button-link" href="wishlist.html" aria-label="Wishlist">❤ Wishlist</a>
+            <button id="cart-btn" aria-label="Open cart">🛒 Cart (<span id="cart-count">0</span>)</button>
+            <a id="profile-btn" class="button-link" href="profile.html" aria-label="Profile">👤 Profile</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h2>Elegant Sarees • Traditional & Contemporary</h2>
+        <p>Browse our curated collection and order online. Free shipping over ₹5000.</p>
+      </section>
+
+      <section class="access-cta" aria-label="Login options">
+        <a class="access-card customer" href="auth.html">
+          <span class="access-label">Customer Login</span>
+          <strong>Login or Register</strong>
+          <small>Use your customer account to place orders and manage your profile.</small>
+        </a>
+
+        <div class="access-card admin">
+          <span class="access-label">Admin Login</span>
+          <strong>Manage Catalog</strong>
+          <small>Sign in here to manage products, stock, and images.</small>
+          <form id="home-admin-login-form" class="home-admin-form">
+            <input id="home-admin-username" name="username" type="text" placeholder="Admin username" required>
+            <input id="home-admin-password" name="password" type="password" placeholder="Admin password" required>
+            <button type="submit">Login as Admin</button>
+          </form>
+          <div id="home-admin-status" class="auth-footer" style="margin-top:.75rem;text-align:left;"></div>
+          <small class="home-admin-note">Default: <strong>Athiva_designs / Athiva_17042003</strong></small>
+          <a class="home-admin-link" href="admin-login.html">Open full admin page</a>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="section-title">Available Sarees</h3>
+        <div id="products" class="product-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <aside id="cart" class="cart" aria-hidden="true">
+      <div class="cart-inner">
+        <button id="close-cart" class="close">×</button>
+        <h3>Your Cart</h3>
+        <div id="cart-items" class="cart-items"></div>
+        <div class="cart-summary">
+          <div>Total: ₹<span id="cart-total">0</span></div>
+          <button id="checkout">Checkout</button>
+        </div>
+      </div>
+    </aside>
+
+    <div id="order-modal" class="modal" aria-hidden="true">
+      <div class="modal-content order-modal">
+        <button id="close-order" class="close">×</button>
+        <h2>Complete Your Order</h2>
+        <form id="order-form">
+          <section class="form-section">
+            <h4>Shipping Information</h4>
+            <div class="form-group">
+              <label for="name">Full Name *</label>
+              <input id="name" name="name" type="text" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number *</label>
+              <input id="phone" name="phone" type="tel" placeholder="+91 XXXXX XXXXX" required pattern="[0-9+\- ]{7,15}">
+            </div>
+            <div class="form-group">
+              <label for="address">Shipping Address *</label>
+              <textarea id="address" name="address" rows="4" placeholder="Street address, city, state, pincode" required></textarea>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h4>Order Summary</h4>
+            <div id="order-summary" class="order-summary"></div>
+            <div class="order-total">Total: ₹<span id="order-total-display">0</span></div>
+          </section>
+
+          <button type="submit" class="button-submit">Confirm Order</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="modal" aria-hidden="true">
+      <div class="modal-content product-modal">
+        <button id="close-product" class="close">×</button>
+        <div class="product-detail-container">
+          <div class="product-image-section">
+            <img id="product-detail-image" src="" alt="" class="product-detail-image">
+            <button id="wishlist-heart" class="wishlist-heart" aria-label="Add to wishlist">♡</button>
+          </div>
+          <div class="product-info-section">
+            <h2 id="product-detail-name"></h2>
+            <div class="detail-row">
+              <label>Category</label>
+              <span id="product-detail-category"></span>
+            </div>
+            <div class="detail-row">
+              <label>Price</label>
+              <span id="product-detail-price" class="price-highlight">₹</span>
+            </div>
+            <div class="detail-row">
+              <label>Availability</label>
+              <span id="product-detail-stock">Loading...</span>
+            </div>
+            <p id="product-detail-description" class="product-description"></p>
+            <div class="detail-actions">
+              <button id="add-to-cart-detail" class="button-primary">Add to Cart</button>
+              <button id="buy-now" class="button-secondary">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login / Register Modal -->
+    <div id="auth-modal" class="modal" aria-hidden="true">
+      <div class="modal-content">
+        <button id="close-auth" class="close">×</button>
+        <h3 id="auth-title">Login</h3>
+        <form id="auth-form">
+          <label for="auth-username">Username</label>
+          <input id="auth-username" name="username" required>
+          <label for="auth-password">Password</label>
+          <input id="auth-password" name="password" type="password" required>
+          <div style="margin-top:.5rem"><button type="submit" id="auth-submit">Submit</button> <button type="button" id="toggle-register">Register</button></div>
+        </form>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="container">© Athiva Designs • Contact: info@athivadesigns.example</div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

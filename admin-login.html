@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Athiva Designs — Admin Login</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1 class="brand">
+          <img class="brand-logo" src="logo.jpeg" alt="Athiva Designs logo">
+          <span>Athiva Designs</span>
+        </h1>
+        <nav class="main-nav">
+          <div class="nav-right">
+            <a class="button-link" href="index.html">← Back to Shop</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="auth-page">
+      <div class="auth-card">
+        <h1>Admin Portal</h1>
+        <p style="text-align:center; color:#666; margin:0 0 1.5rem;">Manage products and inventory</p>
+        
+        <form id="admin-login-form" class="auth-form">
+          <label for="admin-username">Admin Username</label>
+          <input id="admin-username" name="username" type="text" placeholder="Enter admin username" required>
+          
+          <label for="admin-password">Admin Password</label>
+          <input id="admin-password" name="password" type="password" placeholder="Enter admin password" required>
+          
+          <button type="submit">Login to Admin</button>
+        </form>
+
+        <div id="admin-message" class="auth-footer">Default credentials from .env: Athiva_designs / Athiva_17042003</div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">© Athiva Designs • Contact: info@athivadesigns.example</div>
+    </footer>
+
+    <script src="admin-login.js"></script>
+  </body>
+</html>

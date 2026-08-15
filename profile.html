@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Athiva Designs — Profile</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1 class="brand">
+          <img class="brand-logo" src="logo.jpeg" alt="Athiva Designs logo">
+          <span>Athiva Designs</span>
+        </h1>
+        <nav class="main-nav">
+          <div class="nav-right">
+            <a class="button-link" href="index.html">← Back to Shop</a>
+            <a class="button-link" href="wishlist.html">❤ Wishlist</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="auth-page">
+      <div class="auth-card profile-card">
+        <h1>Your Profile</h1>
+        <div id="profile-status" class="auth-footer">Loading profile data...</div>
+
+        <section class="profile-section">
+          <h2>Account</h2>
+          <div class="profile-row"><strong>Username:</strong> <span id="profile-username"></span></div>
+          <div class="profile-row"><strong>Member since:</strong> <span id="profile-created"></span></div>
+        </section>
+
+        <section class="profile-section">
+          <h2>Wishlist</h2>
+          <div id="wishlist-items" class="profile-grid"></div>
+        </section>
+
+        <section class="profile-section">
+          <h2>Order History</h2>
+          <div id="order-history" class="profile-orders"></div>
+        </section>
+
+        <button id="logout-btn" class="button-link" type="button">Logout</button>
+      </div>
+    </main>
+
+    <script src="profile.js"></script>
+  </body>
+</html>

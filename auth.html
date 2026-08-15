@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Athiva Designs — Login & Sign Up</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1 class="brand">
+          <img class="brand-logo" src="logo.jpeg" alt="Athiva Designs logo">
+          <span>Athiva Designs</span>
+        </h1>
+        <nav class="main-nav">
+          <div class="nav-right">
+            <a class="button-link" href="index.html">← Back to Shop</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main class="auth-page">
+      <div class="auth-card">
+        <h1>Login or Register</h1>
+        <p style="text-align:center; color:#666; margin:0 0 1rem;">This page is for customer login. For admin access, use <a href="admin-login.html">admin-login.html</a>.</p>
+        <div class="auth-tabs">
+          <button class="tab-button active" id="login-tab" type="button">Login</button>
+          <button class="tab-button" id="register-tab" type="button">Register</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <label for="login-username">Username</label>
+          <input id="login-username" name="username" type="text" placeholder="Your username" required>
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" placeholder="Your password" required>
+          <button type="submit">Login</button>
+        </form>
+
+        <form id="register-form" class="auth-form hidden">
+          <label for="register-username">Username</label>
+          <input id="register-username" name="username" type="text" placeholder="Choose a username" required>
+          <label for="register-password">Password</label>
+          <input id="register-password" name="password" type="password" placeholder="Choose a password" required>
+          <label for="register-password-confirm">Confirm Password</label>
+          <input id="register-password-confirm" name="passwordConfirm" type="password" placeholder="Repeat your password" required>
+          <button type="submit">Register</button>
+        </form>
+
+        <div class="auth-footer" id="auth-message">Demo login: <strong>demo / demo123</strong>. You can also register a new user account.</div>
+        <button id="logout-btn" class="button-link hidden" type="button">Logout</button>
+      </div>
+    </main>
+
+    <script src="auth.js"></script>
+  </body>
+</html>
