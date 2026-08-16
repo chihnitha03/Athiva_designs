@@ -1,3 +1,21 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/index.html", "destination": "/public/index.html" },
+    { "source": "/auth.html", "destination": "/public/auth.html" },
+    { "source": "/admin-login.html", "destination": "/public/admin-login.html" },
+    { "source": "/admin-dashboard.html", "destination": "/public/admin-dashboard.html" },
+    { "source": "/wishlist.html", "destination": "/public/wishlist.html" },
+    { "source": "/profile.html", "destination": "/public/profile.html" },
+    { "source": "/styles.css", "destination": "/public/styles.css" },
+    { "source": "/script.js", "destination": "/public/script.js" },
+    { "source": "/auth.js", "destination": "/public/auth.js" },
+    { "source": "/admin-login.js", "destination": "/public/admin-login.js" },
+    { "source": "/admin-dashboard.js", "destination": "/public/admin-dashboard.js" },
+    { "source": "/wishlist.js", "destination": "/public/wishlist.js" },
+    { "source": "/profile.js", "destination": "/public/profile.js" },
+    { "source": "/logo.jpeg", "destination": "/public/logo.jpeg" },
+    { "source": "/images/(.*)", "destination": "/public/images/$1" }
+  ]
 }
