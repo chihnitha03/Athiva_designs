@@ -277,34 +277,6 @@ async function fetchProfile(){
   }catch(err){ alert('Network error'); }
 }
 
-const homeAdminForm = document.getElementById('home-admin-login-form');
-const homeAdminStatus = document.getElementById('home-admin-status');
-if(homeAdminForm){
-  homeAdminForm.addEventListener('submit', async function(e){
-    e.preventDefault();
-    const username = this.username.value.trim();
-    const password = this.password.value.trim();
-    if(homeAdminStatus) homeAdminStatus.textContent = 'Signing in...';
-    try{
-      const res = await fetch(`${API_BASE}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await readResponse(res);
-      if(!res.ok){
-        if(homeAdminStatus) homeAdminStatus.textContent = data.error || 'Admin login failed';
-        return;
-      }
-      setAdminToken(data.token);
-      if(homeAdminStatus) homeAdminStatus.textContent = 'Admin login successful. Opening dashboard...';
-      window.location.href = 'admin-dashboard.html';
-    }catch(err){
-      if(homeAdminStatus) homeAdminStatus.textContent = 'Network error. Start the backend and try again.';
-    }
-  });
-}
-
 // initialize
 loadProducts(); loadWishlist(); updateCartCount(); renderCart();
 
