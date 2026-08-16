@@ -3,10 +3,12 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const pool = require('./db');
 
 const app = express();
-app.use(express.static('public'));
+const publicDir = path.join(__dirname, 'public');
+app.use(express.static(publicDir));
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -59,6 +61,14 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 }
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
+});
+
+app.get('/:page(index.html|auth.html|admin-login.html|admin-dashboard.html|wishlist.html|profile.html)', (req, res) => {
+  res.sendFile(path.join(publicDir, req.params.page));
+});
 
 app.get('/api/health', async (req, res) => {
   res.json({ ok: true });
