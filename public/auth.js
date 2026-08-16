@@ -32,13 +32,24 @@ function saveToken(token){
   localStorage.setItem('token', token);
 }
 
+async function readResponse(res){
+  const text = await res.text();
+  if(!text) return {};
+  try{
+    return JSON.parse(text);
+  }catch(err){
+    return { error: text };
+  }
+}
+
 async function sendAuthRequest(url, body){
   const response = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(body)
   });
-  return response.json().then(data => ({ ok: response.ok, data }));
+  const data = await readResponse(response);
+  return { ok: response.ok, data };
 }
 
 const logoutBtn = document.getElementById('logout-btn');

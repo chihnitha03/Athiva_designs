@@ -219,6 +219,16 @@ function getToken(){ return localStorage.getItem('token'); }
 function setAdminToken(token){ localStorage.setItem('admin_token', token); }
 function getAdminToken(){ return localStorage.getItem('admin_token'); }
 
+async function readResponse(res){
+  const text = await res.text();
+  if(!text) return {};
+  try{
+    return JSON.parse(text);
+  }catch(err){
+    return { error: text };
+  }
+}
+
 // auth modal logic
 const authModal = $('#auth-modal');
 const profileBtn = $('#profile-btn');
@@ -249,7 +259,7 @@ $('#auth-form').addEventListener('submit', async function(e){
   const url = isRegister ? `${API_BASE}/auth/register` : `${API_BASE}/auth/login`;
   try{
     const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password }) });
-    const data = await res.json();
+    const data = await readResponse(res);
     if(!res.ok) return alert(data.error || 'Auth failed');
     setToken(data.token);
     authModal.setAttribute('aria-hidden','true');
@@ -281,7 +291,7 @@ if(homeAdminForm){
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json();
+      const data = await readResponse(res);
       if(!res.ok){
         if(homeAdminStatus) homeAdminStatus.textContent = data.error || 'Admin login failed';
         return;

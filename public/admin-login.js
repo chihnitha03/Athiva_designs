@@ -12,6 +12,16 @@ function getAdminToken(){
   return localStorage.getItem('admin_token');
 }
 
+async function readResponse(res){
+  const text = await res.text();
+  if(!text) return {};
+  try{
+    return JSON.parse(text);
+  }catch(err){
+    return { error: text };
+  }
+}
+
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const username = loginForm.username.value.trim();
@@ -29,8 +39,7 @@ loginForm.addEventListener('submit', async (event) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    
-    const data = await res.json();
+    const data = await readResponse(res);
     
     if(!res.ok){
       message.textContent = data.error || 'Login failed';
