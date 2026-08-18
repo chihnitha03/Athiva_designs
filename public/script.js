@@ -23,6 +23,23 @@ let cart = {};
 let wishlist = [];
 let currentProduct = null;
 
+function saveCart(){
+  localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function loadCart(){
+  try{
+    const raw = localStorage.getItem('cart');
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === 'object'){
+      cart = parsed;
+    }
+  }catch(err){
+    cart = {};
+  }
+}
+
 function renderProducts(){
   const root = $('#products');
   root.innerHTML = '';
@@ -159,6 +176,11 @@ function showProductDetail(product){
 }
 
 async function toggleWishlist(productId){
+  const token = getToken();
+  if(!token){
+    alert('Please log in to use wishlist.');
+    return;
+  }
   if(wishlist.includes(productId)){
     wishlist = wishlist.filter(id => id !== productId);
     await syncWishlist(productId, false);
@@ -225,6 +247,7 @@ function addToCart(id){
   const p = products.find(x=>x.id===id); if(!p) return;
   if(!cart[id]) cart[id] = {...p, qty:0};
   cart[id].qty++;
+  saveCart();
   updateCartCount(); renderCart();
 }
 
@@ -258,7 +281,14 @@ document.getElementById('order-form').addEventListener('submit', function(e){
   const items = Object.values(cart).map(i=>`${i.name} x ${i.qty}`).join('\n');
   const total = Object.values(cart).reduce((s,c)=>s+c.qty*c.price,0);
   alert(`Order placed!\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\n\nItems:\n${items}\n\nTotal: ₹${total}`);
-  cart = {}; updateCartCount(); renderCart(); this.reset(); $('#order-modal').setAttribute('aria-hidden','true'); $('#cart').classList.remove('open'); $('#cart').setAttribute('aria-hidden','true');
+  cart = {};
+  saveCart();
+  updateCartCount();
+  renderCart();
+  this.reset();
+  $('#order-modal').setAttribute('aria-hidden','true');
+  $('#cart').classList.remove('open');
+  $('#cart').setAttribute('aria-hidden','true');
 });
 
 // auth helpers
@@ -326,6 +356,7 @@ async function fetchProfile(){
 }
 
 // initialize
+loadCart();
 loadProducts(); loadWishlist(); updateCartCount(); renderCart();
 
 // search functionality
