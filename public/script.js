@@ -31,19 +31,68 @@ function renderProducts(){
     const isOutOfStock = p.quantity === 0 || p.quantity === undefined;
     const card = document.createElement('article');
     card.className = 'card';
+    const inWishlist = wishlist.includes(p.id);
     card.innerHTML = `
-      <img src="${p.image}" alt="${p.name}" style="${isOutOfStock ? 'opacity:0.6;' : ''}">
+      <div class="card-image-wrap">
+        <img src="${p.image}" alt="${p.name}" style="${isOutOfStock ? 'opacity:0.6;' : ''}">
+        <button class="card-wishlist ${inWishlist ? 'favorited' : ''}" type="button" aria-label="${inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}" data-wishlist-id="${p.id}">${inWishlist ? '❤' : '♡'}</button>
+      </div>
       <div class="card-body">
         <h4>${p.name}</h4>
         <div class="price">₹${p.price}</div>
         ${isOutOfStock ? '<div style="color:#c53030;font-weight:600;margin:0.5rem 0;">Out of Stock</div>' : '<div style="color:#22543d;font-weight:600;margin:0.5rem 0;">✓ In Stock (${p.quantity})</div>'.replace('${p.quantity}', p.quantity)}
         <div class="card-actions">
-          <button class="button-primary" data-id="${p.id}" onclick="event.stopPropagation()" ${isOutOfStock ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Add to Cart</button>
-          <button class="button-secondary" onclick="event.stopPropagation();alert('Quick view: ${p.name} — ₹${p.price}')">Quick View</button>
+          <button class="button-primary" data-id="${p.id}" type="button" ${isOutOfStock ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>Add to Cart</button>
+          <button class="button-secondary" data-quickview-id="${p.id}" type="button">Quick View</button>
         </div>
       </div>
     `;
-    card.addEventListener('click', () => showProductDetail(p));
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('button')) return;
+      showProductDetail(p);
+    });
+
+    const addButton = card.querySelector('.button-primary[data-id]');
+    if(addButton){
+      addButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        addToCart(Number(addButton.dataset.id));
+        alert('Added to cart!');
+      });
+    }
+
+    const quickViewButton = card.querySelector('[data-quickview-id]');
+    if(quickViewButton){
+      quickViewButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        showProductDetail(p);
+      });
+    }
+
+    const wishlistButton = card.querySelector('[data-wishlist-id]');
+    if(wishlistButton){
+      wishlistButton.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        await toggleWishlist(p.id);
+        renderProducts();
+        if(currentProduct && currentProduct.id === p.id){
+          const heart = $('#wishlist-heart');
+          if(heart){
+            if(wishlist.includes(p.id)){
+              heart.classList.add('favorited');
+              heart.textContent = '❤';
+            } else {
+              heart.classList.remove('favorited');
+              heart.textContent = '♡';
+            }
+          }
+        }
+      });
+    }
+
     root.appendChild(card);
   });
 }
@@ -169,6 +218,7 @@ async function loadWishlist(){
     const data = await res.json();
     wishlist = data.map(item => item.id);
   }catch(err){ wishlist = []; }
+  renderProducts();
 }
 
 function addToCart(id){
@@ -179,8 +229,6 @@ function addToCart(id){
 }
 
 document.addEventListener('click', e=>{
-  const add = e.target.closest('.button-primary[data-id]');
-  if(add){ addToCart(Number(add.dataset.id)); return }
   const cartBtn = e.target.closest('#cart-btn');
   if(cartBtn){ $('#cart').classList.add('open'); $('#cart').setAttribute('aria-hidden','false'); return }
   const closeCart = e.target.closest('#close-cart');
