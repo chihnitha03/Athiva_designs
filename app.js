@@ -301,7 +301,7 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
       [userId]
     );
     const ordersRes = await pool.query(
-      "SELECT o.id,o.total,o.address,o.phone,o.created_at, COALESCE(json_agg(json_build_object('product_id',oi.product_id,'name',p.name,'qty',oi.quantity,'price',oi.price)) FILTER (WHERE oi.id IS NOT NULL), '[]') items FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id LEFT JOIN products p ON p.id=oi.product_id WHERE o.user_id=$1 GROUP BY o.id ORDER BY o.created_at DESC",
+      "SELECT o.id,o.total,o.address,o.phone,o.created_at, COALESCE(json_agg(json_build_object('product_id',oi.product_id,'name',p.name,'image',p.image,'category',p.category,'qty',oi.quantity,'price',oi.price)) FILTER (WHERE oi.id IS NOT NULL), '[]') items FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id LEFT JOIN products p ON p.id=oi.product_id WHERE o.user_id=$1 GROUP BY o.id ORDER BY o.created_at DESC",
       [userId]
     );
     res.json({ user: userRes.rows[0], wishlist: wishlistRes.rows, orders: ordersRes.rows });

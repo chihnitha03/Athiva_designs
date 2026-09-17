@@ -46,7 +46,12 @@ function renderOrders(orders){
       </div>
       <div class="small-text">Placed on ${new Date(order.created_at).toLocaleDateString()}</div>
       <div class="order-items">
-        ${order.items.map(item => `<div>${item.name || `Product #${item.product_id}`} × ${item.qty} @ ₹${item.price}</div>`).join('')}
+        ${order.items.map(item => `
+          <a class="ordered-item" href="index.html?product=${item.product_id}" title="Open product details">
+            ${item.image ? `<img src="${item.image}" alt="${item.name || 'Ordered saree'}">` : ''}
+            <span><strong>${item.name || `Product #${item.product_id}`}</strong><br>${item.category || 'Saree'} · ${item.qty} × ₹${item.price}<br><small>Open saree details →</small></span>
+          </a>
+        `).join('')}
       </div>
     </div>
   `).join('');

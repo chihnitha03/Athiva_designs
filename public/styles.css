@@ -118,6 +118,11 @@ button, .button-link{font:inherit}
 .order-card{border:1px solid #eee;border-radius:12px;background:#fff;padding:1rem;margin-bottom:1rem}
 .order-header{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.5rem}
 .order-items{padding-left:1rem;color:#444}
+.ordered-item{display:flex;align-items:center;gap:.75rem;color:inherit;text-decoration:none;border:1px solid #eee;border-radius:10px;padding:.65rem;margin:.55rem 0;background:#fff;transition:border-color .2s,box-shadow .2s}
+.ordered-item:hover{border-color:var(--gold);box-shadow:0 6px 16px rgba(0,0,0,.08)}
+.ordered-item img{width:64px;height:64px;object-fit:cover;border-radius:7px;flex:none}
+.ordered-item strong{color:var(--accent)}
+.ordered-item small{color:var(--accent);font-weight:600}
 
 .form-section h4{color:var(--accent);margin:0 0 1rem;font-size:.95rem;text-transform:uppercase;letter-spacing:.5px}
 .form-group{margin-bottom:1rem}

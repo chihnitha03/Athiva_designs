@@ -123,6 +123,11 @@ async function loadProducts(){
     products = fallbackProducts;
   }
   renderProducts();
+  const productId = Number(new URLSearchParams(window.location.search).get('product'));
+  if(productId){
+    const product = products.find(item => Number(item.id) === productId);
+    if(product) showProductDetail(product);
+  }
 }
 
 function populateOrderSummary(){
