@@ -36,8 +36,6 @@
             </div>
           </div>
           <div class="nav-right">
-            <a class="button-link button-link-soft" href="auth.html" aria-label="Customer login">👤 Customer Login</a>
-            <a class="button-link button-link-soft" href="admin-login.html" aria-label="Admin login">🔒 Admin Login</a>
             <a class="button-link" href="wishlist.html" aria-label="Wishlist">❤ Wishlist</a>
             <button id="cart-btn" aria-label="Open cart">🛒 Cart (<span id="cart-count">0</span>)</button>
             <a id="profile-btn" class="button-link" href="profile.html" aria-label="Profile">👤 Profile</a>
@@ -83,11 +81,11 @@
             </div>
             <div class="form-group">
               <label for="phone">Phone Number *</label>
-              <input id="phone" name="phone" type="tel" placeholder="+91 XXXXX XXXXX" required pattern="[0-9+\- ]{7,15}">
+              <input id="phone" name="phone" type="tel" placeholder="10-digit mobile number" required inputmode="numeric" minlength="10" maxlength="10" pattern="[6-9][0-9]{9}" title="Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9">
             </div>
             <div class="form-group">
               <label for="address">Shipping Address *</label>
-              <textarea id="address" name="address" rows="4" placeholder="Street address, city, state, pincode" required></textarea>
+              <textarea id="address" name="address" rows="4" placeholder="Street address, city, state, pincode" required minlength="10" title="Enter a complete shipping address"></textarea>
             </div>
           </section>
 
@@ -145,6 +143,10 @@
           <input id="auth-username" name="username" required>
           <label for="auth-password">Password</label>
           <input id="auth-password" name="password" type="password" required>
+          <div id="auth-email-wrap" class="hidden">
+            <label for="auth-email">Email</label>
+            <input id="auth-email" name="email" type="email">
+          </div>
           <div style="margin-top:.5rem"><button type="submit" id="auth-submit">Submit</button> <button type="button" id="toggle-register">Register</button></div>
         </form>
       </div>

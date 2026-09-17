@@ -189,6 +189,16 @@ You deploy it separately by:
 
 That is the standard setup for Vercel + PostgreSQL.
 
+## Authentication and Email Configuration
+
+Run the updated `schema.sql` once in the hosted database. It adds nullable `email` and `google_id` columns for existing databases.
+
+For Google sign-in, create a Google OAuth Web application and add its client ID in Vercel as `GOOGLE_CLIENT_ID`. Add your deployed domain to the authorized JavaScript origins in Google Cloud.
+
+For email notifications, configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and `EMAIL_FROM` in Vercel. The app sends account-creation and order-confirmation emails when these variables are present. Email delivery is optional and does not prevent an order from being saved.
+
+After changing any Vercel environment variable, create a new deployment. Keep the same hosted `DATABASE_URL` in both local `.env` and Vercel if local changes should appear on the deployed site.
+
 ## Useful Files
 
 - [Backend app](/Users/chihnithabobbala/Athiva_Designs/app.js)

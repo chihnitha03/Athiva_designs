@@ -2,6 +2,8 @@
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE,
+  google_id TEXT UNIQUE,
   password_hash TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -54,6 +56,12 @@ INSERT INTO products(name,price,image,category,quantity) VALUES
 ('Raw Mango Pattu Beige',8990,'/images/p9.png','Raw Mango Pattu',4),
 ('Silk Cotton - Ivory',3290,'/images/p10.png','Silk Cotton',7)
 ON CONFLICT DO NOTHING;
+
+-- Safe migration for databases created before email/Google sign-in was added.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email) WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS users_google_id_unique ON users(google_id) WHERE google_id IS NOT NULL;
 
 -- Sample user (username: demo, password: demo123)
 INSERT INTO users(username,password_hash) VALUES

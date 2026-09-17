@@ -6,6 +6,7 @@ const registerTab = document.getElementById('register-tab');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const authMessage = document.getElementById('auth-message');
+const googleSignin = document.getElementById('google-signin');
 
 function showLogin(){
   loginTab.classList.add('active');
@@ -13,6 +14,7 @@ function showLogin(){
   loginForm.classList.remove('hidden');
   registerForm.classList.add('hidden');
   authMessage.textContent = 'New here? Switch to Register to create an account.';
+  document.getElementById('register-email').required = false;
   updateAuthState();
 }
 
@@ -22,6 +24,7 @@ function showRegister(){
   loginForm.classList.add('hidden');
   registerForm.classList.remove('hidden');
   authMessage.textContent = 'Already have an account? Switch to Login to continue.';
+  document.getElementById('register-email').required = true;
   updateAuthState();
 }
 
@@ -52,6 +55,26 @@ async function sendAuthRequest(url, body){
   return { ok: response.ok, data };
 }
 
+async function setupGoogleSignIn(){
+  try{
+    const configRes = await fetch(`${API_BASE}/auth/google-config`);
+    const { clientId } = await configRes.json();
+    if(!clientId) return;
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.onload = () => {
+      google.accounts.id.initialize({ client_id: clientId, callback: async response => {
+        const result = await sendAuthRequest(`${API_BASE}/auth/google`, { credential: response.credential });
+        if(!result.ok) return alert(result.data.error || 'Google sign-in failed');
+        saveToken(result.data.token);
+        window.location.href = 'profile.html';
+      }});
+      google.accounts.id.renderButton(googleSignin, { theme: 'outline', size: 'large', width: 320, text: 'continue_with' });
+    };
+    document.head.appendChild(script);
+  }catch(err){ console.error('Google sign-in setup failed', err); }
+}
+
 const logoutBtn = document.getElementById('logout-btn');
 
 loginForm.addEventListener('submit', async event => {
@@ -69,11 +92,12 @@ loginForm.addEventListener('submit', async event => {
 registerForm.addEventListener('submit', async event => {
   event.preventDefault();
   const username = registerForm.username.value.trim();
+  const email = registerForm.email.value.trim();
   const password = registerForm.password.value.trim();
   const confirmPassword = registerForm.passwordConfirm.value.trim();
-  if(!username || !password || !confirmPassword) return alert('Fill all registration fields');
+  if(!username || !email || !password || !confirmPassword) return alert('Fill all registration fields');
   if(password !== confirmPassword) return alert('Passwords do not match');
-  const { ok, data } = await sendAuthRequest(`${API_BASE}/auth/register`, { username, password });
+  const { ok, data } = await sendAuthRequest(`${API_BASE}/auth/register`, { username, email, password });
   if(!ok){ return alert(data.error || 'Registration failed'); }
   saveToken(data.token);
   alert('Registration successful! You are now logged in.');
@@ -98,3 +122,4 @@ function updateAuthState(){
 // Show login form by default
 showLogin();
 updateAuthState();
+setupGoogleSignIn();

@@ -41,6 +41,8 @@
         <form id="register-form" class="auth-form hidden">
           <label for="register-username">Username</label>
           <input id="register-username" name="username" type="text" placeholder="Choose a username" required>
+          <label for="register-email">Email</label>
+          <input id="register-email" name="email" type="email" placeholder="you@example.com" required>
           <label for="register-password">Password</label>
           <input id="register-password" name="password" type="password" placeholder="Choose a password" required>
           <label for="register-password-confirm">Confirm Password</label>
@@ -48,7 +50,8 @@
           <button type="submit">Register</button>
         </form>
 
-        <div class="auth-footer" id="auth-message">Demo login: <strong>demo / demo123</strong>. You can also register a new user account.</div>
+        <div id="google-signin" style="margin-top:1rem;text-align:center;"></div>
+        <div class="auth-footer" id="auth-message">You can register a new user account or continue with Google.</div>
         <button id="logout-btn" class="button-link hidden" type="button">Logout</button>
       </div>
     </main>

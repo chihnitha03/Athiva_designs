@@ -46,7 +46,7 @@ function renderOrders(orders){
       </div>
       <div class="small-text">Placed on ${new Date(order.created_at).toLocaleDateString()}</div>
       <div class="order-items">
-        ${order.items.map(item => `<div>${item.product_id} × ${item.qty} @ ₹${item.price}</div>`).join('')}
+        ${order.items.map(item => `<div>${item.name || `Product #${item.product_id}`} × ${item.qty} @ ₹${item.price}</div>`).join('')}
       </div>
     </div>
   `).join('');

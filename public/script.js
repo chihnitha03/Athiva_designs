@@ -6,14 +6,14 @@ const API_BASE = window.location.protocol === 'file:' || window.location.hostnam
 
 // fallback seed if API not available
 const fallbackProducts = [
-  {id:1,name:'Banarasi Silk - Maroon',price:6890,image:'https://images.unsplash.com/photo-1520975915153-8b79b9b6a3b3?auto=format&fit=crop&w=800&q=60',category:'Banarasi'},
-  {id:2,name:'Kanjivaram - Royal Blue',price:9990,image:'https://images.unsplash.com/photo-1520975698510-4b6f6d8a6c0e?auto=format&fit=crop&w=800&q=60',category:'Kanjivaram'},
-  {id:3,name:'Chiffon Printed - Floral',price:2490,image:'https://images.unsplash.com/photo-1531944171234-1b4ba0b8a3f1?auto=format&fit=crop&w=800&q=60',category:'Chiffon'},
-  {id:4,name:'Tussar Silk - Mustard',price:4590,image:'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=60',category:'Tussar'},
-  {id:5,name:'Kanchipattu Antique Green',price:7790,image:'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=800&q=60',category:'Kanchipattu'},
-  {id:6,name:'Georgette Party Wear',price:2890,image:'https://images.unsplash.com/photo-1524704840561-432eb5d8f7d6?auto=format&fit=crop&w=800&q=60',category:'Georgette'},
-  {id:7,name:'Katan Bridal Red',price:12500,image:'https://images.unsplash.com/photo-1523381294911-8e1dd4d3ef1a?auto=format&fit=crop&w=800&q=60',category:'Katan'},
-  {id:8,name:'Raw Mango Pattu Beige',price:8990,image:'https://images.unsplash.com/photo-1529101091764-c3526daf38fe?auto=format&fit=crop&w=800&q=60',category:'Raw Mango Pattu'}
+  {id:1,name:'Banarasi Silk - Maroon',price:6890,image:'https://images.unsplash.com/photo-1520975915153-8b79b9b6a3b3?auto=format&fit=crop&w=800&q=60',category:'Banarasi',quantity:10},
+  {id:2,name:'Kanjivaram - Royal Blue',price:9990,image:'https://images.unsplash.com/photo-1520975698510-4b6f6d8a6c0e?auto=format&fit=crop&w=800&q=60',category:'Kanjivaram',quantity:10},
+  {id:3,name:'Chiffon Printed - Floral',price:2490,image:'https://images.unsplash.com/photo-1531944171234-1b4ba0b8a3f1?auto=format&fit=crop&w=800&q=60',category:'Chiffon',quantity:10},
+  {id:4,name:'Tussar Silk - Mustard',price:4590,image:'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=60',category:'Tussar',quantity:10},
+  {id:5,name:'Kanchipattu Antique Green',price:7790,image:'https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=800&q=60',category:'Kanchipattu',quantity:10},
+  {id:6,name:'Georgette Party Wear',price:2890,image:'https://images.unsplash.com/photo-1524704840561-432eb5d8f7d6?auto=format&fit=crop&w=800&q=60',category:'Georgette',quantity:10},
+  {id:7,name:'Katan Bridal Red',price:12500,image:'https://images.unsplash.com/photo-1523381294911-8e1dd4d3ef1a?auto=format&fit=crop&w=800&q=60',category:'Katan',quantity:10},
+  {id:8,name:'Raw Mango Pattu Beige',price:8990,image:'https://images.unsplash.com/photo-1529101091764-c3526daf38fe?auto=format&fit=crop&w=800&q=60',category:'Raw Mango Pattu',quantity:10}
 ];
 
 const $ = sel => document.querySelector(sel);
@@ -45,7 +45,7 @@ function renderProducts(){
   root.innerHTML = '';
   const toRender = filteredProducts.length > 0 ? filteredProducts : products;
   toRender.forEach(p => {
-    const isOutOfStock = p.quantity === 0 || p.quantity === undefined;
+    const isOutOfStock = Number(p.quantity) <= 0;
     const card = document.createElement('article');
     card.className = 'card';
     const inWishlist = wishlist.includes(p.id);
@@ -134,7 +134,7 @@ function populateOrderSummary(){
 
 function showProductDetail(product){
   currentProduct = product;
-  const isOutOfStock = product.quantity === 0 || product.quantity === undefined;
+  const isOutOfStock = Number(product.quantity) <= 0;
   $('#product-detail-name').textContent = product.name;
   $('#product-detail-image').src = product.image;
   $('#product-detail-image').alt = product.name;
@@ -161,6 +161,10 @@ function showProductDetail(product){
     addBtn.style.opacity = '1';
     addBtn.style.cursor = 'pointer';
   }
+  const buyNowButton = $('#buy-now');
+  buyNowButton.disabled = isOutOfStock;
+  buyNowButton.style.opacity = isOutOfStock ? '0.5' : '1';
+  buyNowButton.style.cursor = isOutOfStock ? 'not-allowed' : 'pointer';
   
   // update wishlist heart
   const heart = $('#wishlist-heart');
@@ -245,6 +249,7 @@ async function loadWishlist(){
 
 function addToCart(id){
   const p = products.find(x=>x.id===id); if(!p) return;
+  if(Number(p.quantity) <= 0){ alert('This item is out of stock.'); return; }
   if(!cart[id]) cart[id] = {...p, qty:0};
   cart[id].qty++;
   saveCart();
@@ -259,7 +264,7 @@ document.addEventListener('click', e=>{
   const incdec = e.target.closest('button[data-action]');
   if(incdec){ const id=Number(incdec.dataset.id); const act=incdec.dataset.action; if(cart[id]){ if(act==='inc') cart[id].qty++; else { cart[id].qty--; if(cart[id].qty<=0) delete cart[id]; } updateCartCount(); renderCart(); } return }
   const checkout = e.target.closest('#checkout');
-  if(checkout){ if(Object.keys(cart).length===0){ alert('Cart is empty'); return } populateOrderSummary(); $('#order-modal').setAttribute('aria-hidden','false'); return }
+  if(checkout){ if(Object.keys(cart).length===0){ alert('Cart is empty'); return } if(!getToken()){ window.location.href='auth.html'; return; } populateOrderSummary(); $('#order-modal').setAttribute('aria-hidden','false'); return }
   const closeOrder = e.target.closest('#close-order');
   if(closeOrder){ $('#order-modal').setAttribute('aria-hidden','true'); return }
   const closeProduct = e.target.closest('#close-product');
@@ -267,20 +272,32 @@ document.addEventListener('click', e=>{
   const addToCartDetail = e.target.closest('#add-to-cart-detail');
   if(addToCartDetail && currentProduct){ addToCart(currentProduct.id); alert('Added to cart!'); return }
   const buyNow = e.target.closest('#buy-now');
-  if(buyNow && currentProduct){ addToCart(currentProduct.id); $('#product-modal').setAttribute('aria-hidden','true'); populateOrderSummary(); $('#order-modal').setAttribute('aria-hidden','false'); return }
+  if(buyNow && currentProduct){ if(Number(currentProduct.quantity) <= 0) return; if(!getToken()){ window.location.href='auth.html'; return; } addToCart(currentProduct.id); $('#product-modal').setAttribute('aria-hidden','true'); populateOrderSummary(); $('#order-modal').setAttribute('aria-hidden','false'); return }
   const wishlistHeart = e.target.closest('#wishlist-heart');
   if(wishlistHeart && currentProduct){ toggleWishlist(currentProduct.id); return }
 });
 
-document.getElementById('order-form').addEventListener('submit', function(e){
+document.getElementById('order-form').addEventListener('submit', async function(e){
   e.preventDefault();
   const name = this.name.value.trim();
   const phone = this.phone.value.trim();
   const address = this.address.value.trim();
   if(!name||!phone||!address){ alert('Please fill all fields'); return }
-  const items = Object.values(cart).map(i=>`${i.name} x ${i.qty}`).join('\n');
-  const total = Object.values(cart).reduce((s,c)=>s+c.qty*c.price,0);
-  alert(`Order placed!\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\n\nItems:\n${items}\n\nTotal: ₹${total}`);
+  if(!/^[6-9]\d{9}$/.test(phone)){
+    alert('Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9');
+    return;
+  }
+  if(address.length < 10){ alert('Please enter a complete shipping address'); return; }
+  if(!getToken()){ window.location.href='auth.html'; return; }
+  try {
+    const response = await fetch(`${API_BASE}/orders`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()}, body:JSON.stringify({ items:Object.values(cart).map(i=>({productId:i.id,qty:i.qty})), address, phone }) });
+    const data = await readResponse(response);
+    if(!response.ok){ alert(data.error || 'Could not place order'); return; }
+    alert(`Order #${data.orderId} placed successfully! A confirmation email will be sent if email notifications are configured.`);
+  } catch (err) {
+    alert('Network error while placing the order. Your cart was kept.');
+    return;
+  }
   cart = {};
   saveCart();
   updateCartCount();
@@ -327,16 +344,21 @@ $('#close-auth').addEventListener('click', ()=>authModal.setAttribute('aria-hidd
 
 let isRegister = false;
 $('#toggle-register').addEventListener('click', ()=>{
-  isRegister = !isRegister; $('#auth-title').textContent = isRegister ? 'Register' : 'Login'; $('#auth-submit').textContent = isRegister ? 'Register' : 'Login';
+  isRegister = !isRegister;
+  $('#auth-title').textContent = isRegister ? 'Register' : 'Login';
+  $('#auth-submit').textContent = isRegister ? 'Register' : 'Login';
+  $('#auth-email-wrap').classList.toggle('hidden', !isRegister);
+  $('#auth-email').required = isRegister;
 });
 
 $('#auth-form').addEventListener('submit', async function(e){
   e.preventDefault();
   const username = this.username.value.trim();
+  const email = $('#auth-email').value.trim();
   const password = this.password.value.trim();
   const url = isRegister ? `${API_BASE}/auth/register` : `${API_BASE}/auth/login`;
   try{
-    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password }) });
+    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username, password, ...(isRegister ? { email } : {}) }) });
     const data = await readResponse(res);
     if(!res.ok) return alert(data.error || 'Auth failed');
     setToken(data.token);
