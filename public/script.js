@@ -282,6 +282,46 @@ document.addEventListener('click', e=>{
   if(wishlistHeart && currentProduct){ toggleWishlist(currentProduct.id); return }
 });
 
+async function loadRazorpay(){
+  if(window.Razorpay) return true;
+  await new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+  return Boolean(window.Razorpay);
+}
+
+async function saveOrder(form, payment = {}){
+  const response = await fetch(`${API_BASE}/orders`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+    body:JSON.stringify({
+      items:Object.values(cart).map(i=>({productId:i.id,qty:i.qty})),
+      address:form.address.value.trim(),
+      phone:form.phone.value.trim(),
+      ...payment
+    })
+  });
+  const data = await readResponse(response);
+  if(!response.ok) throw new Error(data.error || 'Could not place order');
+  return data;
+}
+
+function finishOrder(form, data){
+  alert(`Order #${data.orderId} placed successfully! A confirmation email will be sent if email notifications are configured.`);
+  cart = {};
+  saveCart();
+  updateCartCount();
+  renderCart();
+  form.reset();
+  $('#order-modal').setAttribute('aria-hidden','true');
+  $('#cart').classList.remove('open');
+  $('#cart').setAttribute('aria-hidden','true');
+}
+
 document.getElementById('order-form').addEventListener('submit', async function(e){
   e.preventDefault();
   const name = this.name.value.trim();
@@ -295,22 +335,43 @@ document.getElementById('order-form').addEventListener('submit', async function(
   if(address.length < 10){ alert('Please enter a complete shipping address'); return; }
   if(!getToken()){ window.location.href='auth.html'; return; }
   try {
-    const response = await fetch(`${API_BASE}/orders`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()}, body:JSON.stringify({ items:Object.values(cart).map(i=>({productId:i.id,qty:i.qty})), address, phone }) });
-    const data = await readResponse(response);
-    if(!response.ok){ alert(data.error || 'Could not place order'); return; }
-    alert(`Order #${data.orderId} placed successfully! A confirmation email will be sent if email notifications are configured.`);
+    if(this.paymentMethod.value === 'upi'){
+      const configResponse = await fetch(`${API_BASE}/payments/config`);
+      const config = await readResponse(configResponse);
+      if(!config.keyId) throw new Error('UPI payments are not configured yet. Choose Cash on Delivery or contact the administrator.');
+      const razorpayResponse = await fetch(`${API_BASE}/payments/create-order`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+        body:JSON.stringify({ items:Object.values(cart).map(i=>({productId:i.id,qty:i.qty})) })
+      });
+      const razorpayData = await readResponse(razorpayResponse);
+      if(!razorpayResponse.ok) throw new Error(razorpayData.error || 'Unable to start UPI payment');
+      await loadRazorpay();
+      const options = {
+        key: razorpayData.keyId,
+        amount: razorpayData.order.amount,
+        currency: 'INR',
+        name: 'Athiva Designs',
+        description: 'Saree order payment',
+        order_id: razorpayData.order.id,
+        handler: async payment => {
+          try {
+            const data = await saveOrder(this, { paymentMethod:'upi', razorpayOrderId:payment.razorpay_order_id, razorpayPaymentId:payment.razorpay_payment_id, razorpaySignature:payment.razorpay_signature });
+            finishOrder(this, data);
+          } catch(err) { alert(err.message); }
+        },
+        prefill: { name: this.name.value.trim() },
+        theme: { color: '#8b0000' }
+      };
+      new Razorpay(options).open();
+      return;
+    }
+    const data = await saveOrder(this, { paymentMethod:'cod' });
+    finishOrder(this, data);
   } catch (err) {
-    alert('Network error while placing the order. Your cart was kept.');
+    alert(err.message || 'Network error while placing the order. Your cart was kept.');
     return;
   }
-  cart = {};
-  saveCart();
-  updateCartCount();
-  renderCart();
-  this.reset();
-  $('#order-modal').setAttribute('aria-hidden','true');
-  $('#cart').classList.remove('open');
-  $('#cart').setAttribute('aria-hidden','true');
 });
 
 // auth helpers
@@ -377,7 +438,7 @@ async function fetchProfile(){
     const res = await fetch(`${API_BASE}/profile`, { headers:{ 'Authorization': 'Bearer '+getToken() } });
     if(!res.ok) return alert('Failed to load profile, please login');
     const data = await res.json();
-    let msg = `User: ${data.user.username}\nOrders: ${data.orders.length}\nWishlist: ${data.wishlist.length}`;
+    let msg = `User: ${data.user.username}\nOrders: ${data.orderCount ?? data.orders.length}\nWishlist: ${data.wishlist.length}`;
     alert(msg);
   }catch(err){ alert('Network error'); }
 }

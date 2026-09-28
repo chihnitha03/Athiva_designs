@@ -3,6 +3,7 @@ const API_BASE = window.location.protocol === 'file:' || window.location.hostnam
   : `${window.location.origin}/api`;
 const profileUsername = document.getElementById('profile-username');
 const profileCreated = document.getElementById('profile-created');
+const profileOrderCount = document.getElementById('profile-order-count');
 const wishlistItems = document.getElementById('wishlist-items');
 const orderHistory = document.getElementById('order-history');
 const profileStatus = document.getElementById('profile-status');
@@ -69,6 +70,7 @@ async function loadProfile(){
     }
     profileUsername.textContent = data.user.username;
     profileCreated.textContent = new Date(data.user.created_at).toLocaleDateString();
+    profileOrderCount.textContent = data.orderCount ?? (data.orders || []).length;
     renderWishlist(data.wishlist || []);
     renderOrders(data.orders || []);
     profileStatus.textContent = 'Welcome back!';

@@ -1,9 +1,9 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const path = require('path');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const pool = require('./db');
@@ -29,6 +29,9 @@ const mailTransport = process.env.SMTP_HOST && process.env.SMTP_USER && process.
     })
   : null;
 
+if (!mailTransport) console.warn('Email notifications are disabled: configure SMTP_HOST, SMTP_USER, and SMTP_PASSWORD in .env.');
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) console.warn('UPI payments are disabled: configure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env.');
+
 async function sendEmail({ to, subject, text }) {
   if (!mailTransport || !to) return;
   try {
@@ -41,6 +44,20 @@ async function sendEmail({ to, subject, text }) {
   } catch (err) {
     console.error('Email notification failed:', err.message);
   }
+}
+
+function calculateOrderTotal(items, rows) {
+  const productMap = Object.fromEntries(rows.map(row => [row.id, row]));
+  if (rows.length !== new Set(items.map(item => Number(item.productId))).size) {
+    throw new Error('One or more products are unavailable');
+  }
+  for (const item of items) {
+    const quantity = Number(item.qty);
+    const product = productMap[Number(item.productId)];
+    if (!Number.isInteger(quantity) || quantity < 1) throw new Error('Invalid item quantity');
+    if (quantity > product.quantity) throw new Error(`${product.name} is out of stock or has insufficient stock`);
+  }
+  return items.reduce((total, item) => total + productMap[Number(item.productId)].price * Number(item.qty), 0);
 }
 
 function generateToken(user) {
@@ -96,7 +113,11 @@ app.get('/:page(index.html|auth.html|admin-login.html|admin-dashboard.html|wishl
 });
 
 app.get('/api/health', async (req, res) => {
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+    emailConfigured: Boolean(mailTransport),
+    upiConfigured: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)
+  });
 });
 
 app.post('/api/auth/register', async (req, res) => {
@@ -141,6 +162,37 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/google-config', (req, res) => {
   res.json({ clientId: process.env.GOOGLE_CLIENT_ID || null });
+});
+
+app.get('/api/payments/config', (req, res) => {
+  res.json({ keyId: process.env.RAZORPAY_KEY_ID || null });
+});
+
+app.post('/api/payments/create-order', authMiddleware, async (req, res) => {
+  try {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(503).json({ error: 'UPI payments are not configured yet' });
+    }
+    const { items } = req.body;
+    if (!Array.isArray(items) || !items.length) return res.status(400).json({ error: 'No items' });
+    const productIds = items.map(item => Number(item.productId));
+    const productsRes = await pool.query('SELECT id,name,price,quantity FROM products WHERE id = ANY($1)', [productIds]);
+    const total = calculateOrderTotal(items, productsRes.rows);
+    const razorpayRes = await fetch('https://api.razorpay.com/v1/orders', {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`).toString('base64')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ amount: total * 100, currency: 'INR', receipt: `athiva_${Date.now()}` })
+    });
+    const razorpayData = await razorpayRes.json();
+    if (!razorpayRes.ok) return res.status(502).json({ error: razorpayData.error?.description || 'Unable to start UPI payment' });
+    res.json({ order: razorpayData, keyId: process.env.RAZORPAY_KEY_ID });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message || 'Unable to start UPI payment' });
+  }
 });
 
 app.post('/api/auth/google', async (req, res) => {
@@ -304,7 +356,13 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
       "SELECT o.id,o.total,o.address,o.phone,o.created_at, COALESCE(json_agg(json_build_object('product_id',oi.product_id,'name',p.name,'image',p.image,'category',p.category,'qty',oi.quantity,'price',oi.price)) FILTER (WHERE oi.id IS NOT NULL), '[]') items FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id LEFT JOIN products p ON p.id=oi.product_id WHERE o.user_id=$1 GROUP BY o.id ORDER BY o.created_at DESC",
       [userId]
     );
-    res.json({ user: userRes.rows[0], wishlist: wishlistRes.rows, orders: ordersRes.rows });
+    const orderCountRes = await pool.query('SELECT COUNT(*)::int AS count FROM orders WHERE user_id=$1', [userId]);
+    res.json({
+      user: userRes.rows[0],
+      wishlist: wishlistRes.rows,
+      orders: ordersRes.rows,
+      orderCount: orderCountRes.rows[0].count
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -315,7 +373,7 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
   const client = await pool.connect();
   try {
     const userId = req.user.id;
-    const { items, address, phone } = req.body;
+    const { items, address, phone, paymentMethod = 'cod', razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
     if (!items || !items.length) return res.status(400).json({ error: 'No items' });
     if (!phone || !/^[6-9]\d{9}$/.test(String(phone).trim())) {
       return res.status(400).json({ error: 'Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9' });
@@ -323,14 +381,27 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     if (!address || String(address).trim().length < 10) {
       return res.status(400).json({ error: 'Please enter a complete shipping address' });
     }
+    if (paymentMethod === 'upi') {
+      if (!process.env.RAZORPAY_KEY_SECRET || !razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+        return res.status(400).json({ error: 'UPI payment was not completed' });
+      }
+      const expectedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+        .digest('hex');
+      const signaturesMatch = expectedSignature.length === razorpaySignature.length && crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(razorpaySignature));
+      if (!signaturesMatch) return res.status(400).json({ error: 'UPI payment verification failed' });
+    }
     const productIds = items.map(i => Number(i.productId));
     if (items.some(i => !Number.isInteger(Number(i.qty)) || Number(i.qty) < 1)) return res.status(400).json({ error: 'Invalid item quantity' });
     await client.query('BEGIN');
     const q = await client.query('SELECT id,name,price,quantity FROM products WHERE id = ANY($1) FOR UPDATE', [productIds]);
     if (q.rows.length !== new Set(productIds).size) return res.status(400).json({ error: 'One or more products are unavailable' });
     const productMap = Object.fromEntries(q.rows.map(r => [r.id, r]));
-    for (const it of items) if (Number(it.qty) > productMap[Number(it.productId)].quantity) return res.status(400).json({ error: `${productMap[Number(it.productId)].name} is out of stock or has insufficient stock` });
-    const total = items.reduce((s, it) => s + productMap[Number(it.productId)].price * Number(it.qty), 0);
+    const total = calculateOrderTotal(items, q.rows);
+    const emailItems = items.map(item => {
+      const product = productMap[Number(item.productId)];
+      return `${product.name} - Qty: ${Number(item.qty)} - ₹${product.price * Number(item.qty)}`;
+    }).join('\n');
     const orderRes = await client.query(
       'INSERT INTO orders(user_id,total,address,phone) VALUES($1,$2,$3,$4) RETURNING id,created_at',
       [userId, total, address, phone]
@@ -347,7 +418,24 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
     await client.query('COMMIT');
     const userRes = await pool.query('SELECT username,email FROM users WHERE id=$1', [userId]);
     const user = userRes.rows[0];
-    await sendEmail({ to: user?.email, subject: `Athiva Designs order #${orderId}`, text: `Hello ${user?.username || ''},\n\nYour order #${orderId} has been placed.\nTotal: ₹${total}\n\nThank you for shopping with Athiva Designs.` });
+    const paymentLabel = paymentMethod === 'upi' ? 'UPI (Razorpay)' : 'Cash on Delivery';
+    await sendEmail({
+      to: user?.email,
+      subject: `Athiva Designs order confirmation #${orderId}`,
+      text: `Hello ${user?.username || ''},
+
+Your order #${orderId} has been placed successfully.
+
+Saree details:
+${emailItems}
+
+Payment method: ${paymentLabel}
+Total: ₹${total}
+Phone: ${phone}
+Shipping address: ${address}
+
+Thank you for shopping with Athiva Designs.`
+    });
     res.json({ success: true, orderId });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
