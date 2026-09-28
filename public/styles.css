@@ -128,6 +128,8 @@ button, .button-link{font:inherit}
 .form-group{margin-bottom:1rem}
 .form-group label{display:block;color:var(--accent);font-weight:600;margin-bottom:.4rem;font-size:.9rem}
 .form-group input, .form-group textarea{width:100%;padding:.6rem;border:1px solid #ddd;border-radius:4px;font:inherit;transition:border-color .2s}
+.form-group select{width:100%;padding:.6rem;border:1px solid #ddd;border-radius:4px;font:inherit;background:#fff}
+.payment-help{display:block;color:var(--muted);margin-top:.35rem}
 .form-group input:focus, .form-group textarea:focus{outline:none;border-color:var(--gold)}
 .order-summary{background:var(--surface);color:var(--text-light);padding:1rem;border-radius:6px;margin-bottom:1rem}
 .order-summary-item{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid rgba(212,175,55,.2)}

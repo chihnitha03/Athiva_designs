@@ -95,6 +95,15 @@
             <div class="order-total">Total: ₹<span id="order-total-display">0</span></div>
           </section>
 
+          <div class="form-group">
+            <label for="payment-method">Payment Method *</label>
+            <select id="payment-method" name="paymentMethod">
+              <option value="cod">Cash on Delivery</option>
+              <option value="upi">UPI / Razorpay</option>
+            </select>
+            <small class="payment-help">UPI payments require Razorpay configuration by the administrator.</small>
+          </div>
+
           <button type="submit" class="button-submit">Confirm Order</button>
         </form>
       </div>

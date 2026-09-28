@@ -197,6 +197,8 @@ For Google sign-in, create a Google OAuth Web application and add its client ID 
 
 For email notifications, configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and `EMAIL_FROM` in Vercel. The app sends account-creation and order-confirmation emails when these variables are present. Email delivery is optional and does not prevent an order from being saved.
 
+For verified UPI payments, configure `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in Vercel and locally. The checkout uses Razorpay's UPI-capable Checkout and the backend verifies the payment signature before saving the order. Use Razorpay test keys while testing and live keys only after completing Razorpay account activation.
+
 After changing any Vercel environment variable, create a new deployment. Keep the same hosted `DATABASE_URL` in both local `.env` and Vercel if local changes should appear on the deployed site.
 
 ## Useful Files
